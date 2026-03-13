@@ -1,0 +1,62 @@
+// சத்துணவு பதிவேடு - Service Worker v6.6
+const CACHE = 'mdm-v6.6';
+
+const CORE = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.png',
+  './icon-192.png',
+  './icon-512.png',
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&display=swap',
+  'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+];
+
+// Install: cache core assets
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache => {
+      // Cache what we can; ignore failures for external resources
+      return Promise.allSettled(CORE.map(url => cache.add(url).catch(() => {})));
+    }).then(() => self.skipWaiting())
+  );
+});
+
+// Activate: delete old caches
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+// Fetch: cache-first for app shell, network-first for Firebase
+self.addEventListener('fetch', e => {
+  const url = e.request.url;
+
+  // Always network for Firebase
+  if (url.includes('firestore.googleapis.com') || url.includes('firebase')) {
+    return; // let browser handle
+  }
+
+  // Cache-first for everything else
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(resp => {
+        if (resp && resp.status === 200 && resp.type !== 'opaque') {
+          const clone = resp.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
+        return resp;
+      }).catch(() => {
+        // Offline fallback: return cached index.html for navigate requests
+        if (e.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+      });
+    })
+  );
+});
