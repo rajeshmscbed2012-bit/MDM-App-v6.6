@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mdm-cache-v6.7';
+const CACHE_NAME = 'mdm-cache-v6.6';
 
 // Cache செய்ய வேண்டிய முக்கிய கோப்புகள்
 const urlsToCache = [
