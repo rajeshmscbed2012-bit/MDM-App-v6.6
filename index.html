@@ -21,6 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
 // Load Firebase scripts dynamically so failure doesn't block the app
@@ -124,16 +125,16 @@ body{font-family:'Noto Sans Tamil',sans-serif;background:var(--bg);color:var(--t
   border:1px solid rgba(255,255,255,.8);padding:6px 4px;
 }
 .ab{
-  flex:1;padding:8px 2px;display:flex;flex-direction:column;align-items:center;
+  flex:1;padding:7px 1px;display:flex;flex-direction:column;align-items:center;
   cursor:pointer;border:none;background:transparent;font-family:inherit;
-  color:var(--mu);font-size:9px;gap:3px;border-radius:16px;transition:.22s;position:relative;
+  color:var(--mu);font-size:8px;gap:2px;border-radius:14px;transition:.22s;position:relative;
 }
 .ab.on{color:var(--bm)}
 .ab.on::before{
   content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(96,165,250,.08));
-  border-radius:16px;
+  border-radius:14px;
 }
-.ni{font-size:20px;transition:.22s}
+.ni{font-size:18px;transition:.22s}
 .ab.on .ni{transform:scale(1.1)}
 .body{flex:1;padding:14px;max-width:900px;margin:0 auto;width:100%;padding-bottom:calc(var(--nav-h) + 20px)}
 
@@ -214,9 +215,9 @@ body{font-family:'Noto Sans Tamil',sans-serif;background:var(--bg);color:var(--t
 }
 .fgs input:focus,.fgs select:focus{border-color:var(--bm);background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.07)}
 .table-res{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-.etr td{padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:middle;white-space:nowrap;transition:.2s}
+.etr td{padding:7px 6px;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:middle;transition:.2s;word-break:break-word}
 .etr:last-child td{border-bottom:none}
-.etr td:first-child{padding-left:12px;font-size:12px;font-weight:700;color:var(--tx)}
+.etr td:first-child{padding-left:8px;font-size:11px;font-weight:700;color:var(--tx)}
 .stk-val{font-size:13px;font-weight:800;color:#059669;text-align:center}
 .stk-val.low{color:#e11d48}
 .rem-val{font-size:13px;font-weight:800;color:var(--bm);text-align:center}
@@ -478,12 +479,18 @@ document.getElementById('meta-theme').setAttribute("content", metaColors[savedTh
 
                 <div class="strip gr-strip" style="padding:0;overflow:hidden"> 
                     <div style="background:#c2410c;padding:10px 14px;color:#fff;font-size:12px;font-weight:800">🌾 தானியங்கள் & முட்டை — இருப்பு / பயன்பாடு / மீதம்</div> 
-                    <div class="table-res">
-                        <table style="width:100%;border-collapse:collapse;min-width:380px;"> 
-                            <thead><tr style="background:#fff3e4"><th style="padding:8px 10px;font-size:10px;font-weight:800;color:#92400e;text-align:left;width:32%">பொருள்</th><th style="padding:8px 6px;font-size:10px;font-weight:800;color:#065f46;text-align:center;width:22%">📦 இருப்பு</th><th style="padding:8px 6px;font-size:10px;font-weight:800;color:#c2410c;text-align:center;width:24%">🔥 பயன்பாடு</th><th style="padding:8px 6px;font-size:10px;font-weight:800;color:#1e4fc2;text-align:center;width:22%">✅ மீதம்</th></tr></thead> 
+                    <div style="overflow:hidden">
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed"> 
+                            <thead><tr style="background:#fff3e4">
+                                <th style="padding:7px 6px;font-size:10px;font-weight:800;color:#92400e;text-align:left;width:36%">பொருள்</th>
+                                <th style="padding:7px 4px;font-size:10px;font-weight:800;color:#065f46;text-align:center;width:20%">📦 இருப்பு</th>
+                                <th style="padding:7px 4px;font-size:10px;font-weight:800;color:#c2410c;text-align:center;width:22%">🔥 பயன்பாடு</th>
+                                <th style="padding:7px 4px;font-size:10px;font-weight:800;color:#1e4fc2;text-align:center;width:22%">✅ மீதம்</th>
+                            </tr></thead> 
                             <tbody id="grainTbody"></tbody> 
                         </table> 
                     </div>
+                    <div style="display:none" id="grainCards"></div>
                 </div> 
 
                 <div class="strip mo-strip" style="padding:0;overflow:hidden;margin-top:10px"> 
@@ -674,7 +681,84 @@ document.getElementById('meta-theme').setAttribute("content", metaColors[savedTh
             </div>
         </div>
 
-    </div> 
+        <!-- ═══ ANALYTICS PAGE ═══ -->
+        <div id="pA" class="page" style="display:none">
+
+            <!-- Header banner -->
+            <div class="ban" style="margin-bottom:14px">
+                <div>
+                    <h2>📈 பகுப்பாய்வு</h2>
+                    <p id="aBannerSub">ஆண்டு தேர்வு செய்யவும்</p>
+                    <div class="bdg" id="aBannerBadge">—</div>
+                </div>
+                <select id="fAYr" onchange="loadAnalytics()"
+                    style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:12px;padding:8px 12px;font-family:inherit;font-size:13px;font-weight:700;outline:none;cursor:pointer">
+                    <option>2023</option><option>2024</option><option>2025</option><option>2026</option><option>2027</option>
+                </select>
+            </div>
+
+            <!-- KPI cards 3-col -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px" id="aKpi"></div>
+
+            <!-- Mini trend row -->
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px" id="aTrend"></div>
+
+            <!-- Monthly expenditure bar -->
+            <div class="card" style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <div class="st" style="margin:0">📊 மாத வாரி செலவு (₹)</div>
+                    <div id="aExpTotal" style="font-size:11px;font-weight:800;color:var(--bm)"></div>
+                </div>
+                <div style="position:relative;height:200px"><canvas id="chartMonthExp"></canvas></div>
+            </div>
+
+            <!-- Per-student cost line -->
+            <div class="card" style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <div class="st" style="margin:0">👤 மாணவர் ஒருவருக்கு சராசரி செலவு (₹)</div>
+                    <div id="aAvgCost" style="font-size:11px;font-weight:800;color:#059669"></div>
+                </div>
+                <div style="position:relative;height:190px"><canvas id="chartPerStudent"></canvas></div>
+            </div>
+
+            <!-- Grain tabs + chart -->
+            <div class="card" style="margin-bottom:14px">
+                <div class="st" style="margin-bottom:10px">🌾 தானிய பயன்பாடு</div>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px" id="grainChartBtns"></div>
+                <div style="position:relative;height:190px"><canvas id="chartGrain"></canvas></div>
+            </div>
+
+            <!-- Expenditure breakdown doughnut + stats -->
+            <div class="card" style="margin-bottom:14px">
+                <div class="st" style="margin-bottom:10px">💰 செலவு பிரிவு</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center">
+                    <div style="position:relative;height:160px"><canvas id="chartExpBreak"></canvas></div>
+                    <div id="aExpBreakStats" style="display:flex;flex-direction:column;gap:8px"></div>
+                </div>
+            </div>
+
+            <!-- Food menu frequency -->
+            <div class="card" style="margin-bottom:14px">
+                <div class="st" style="margin-bottom:10px">🍽️ உணவு வகை அதிர்வெண்</div>
+                <div style="position:relative;height:200px"><canvas id="chartMenu"></canvas></div>
+            </div>
+
+            <!-- YoY table -->
+            <div class="card" style="margin-bottom:14px">
+                <div class="st" style="margin-bottom:10px">📋 ஆண்டு ஒப்பீடு (Year-on-Year)</div>
+                <div class="tw" id="yoyTable"></div>
+            </div>
+
+            <!-- Weekly trend (this month) -->
+            <div class="card" style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <div class="st" style="margin:0">📅 வாரம் வாரம் செலவு (இந்த மாதம்)</div>
+                </div>
+                <div style="position:relative;height:180px"><canvas id="chartWeekly"></canvas></div>
+            </div>
+
+        </div>
+
 
     <nav class="nb" id="mainNav">
         <button class="ab" id="nD" onclick="gP('dash')"><span class="ni">🏠</span>முகப்பு</button>
@@ -682,6 +766,7 @@ document.getElementById('meta-theme').setAttribute("content", metaColors[savedTh
         <button class="ab admin-only" id="nS" onclick="gP('stock')"><span class="ni">📦</span>இருப்பு</button>
         <button class="ab" id="nR" onclick="gP('report')"><span class="ni">📊</span>அறிக்கை</button>
         <button class="ab" id="nL" onclick="gP('ledger')"><span class="ni">💵</span>நிதி</button>
+        <button class="ab" id="nA" onclick="gP('analytics')"><span class="ni">📈</span>பகுப்பு</button>
     </nav>
 </div>
 
@@ -980,6 +1065,7 @@ async function checkSession() {
         document.getElementById('fYr').value = curYr.toString();
         document.getElementById('fLYr').value = curYr.toString();
         document.getElementById('sHistYr').value = curYr.toString();
+        document.getElementById('fAYr').value = curYr.toString();
         let acYrStr = curYr + "-" + (curYr + 1);
         if(new Date().getMonth() < 3) acYrStr = (curYr - 1) + "-" + curYr;
         document.getElementById('fAcYr').value = acYrStr;
@@ -1036,6 +1122,7 @@ async function doLogin(){
     document.getElementById('fYr').value = curYr.toString();
     document.getElementById('fLYr').value = curYr.toString();
     document.getElementById('sHistYr').value = curYr.toString();
+    document.getElementById('fAYr').value = curYr.toString();
     let acYrStr = curYr + "-" + (curYr + 1);
     if(new Date().getMonth() < 3) acYrStr = (curYr - 1) + "-" + curYr;
     document.getElementById('fAcYr').value = acYrStr;
@@ -1117,7 +1204,8 @@ function gP(p){
     if(p==='preview'){show('pP');} 
     if(p==='stock'){ show('pS');actN('nS');renderBal();initStock();loadHist();} 
     if(p==='report'){show('pR');actN('nR'); loadActiveRep();} 
-    if(p==='ledger'){show('pL');actN('nL');document.getElementById('fLMn').value=MONTHS[new Date().getMonth()];loadLedger();} 
+    if(p==='ledger'){show('pL');actN('nL');document.getElementById('fLMn').value=MONTHS[new Date().getMonth()];loadLedger();}
+    if(p==='analytics'){show('pA');actN('nA');loadAnalytics();}
 } 
 function show(id){document.getElementById(id).style.display='block';} 
 function actN(id){document.getElementById(id).classList.add('on');} 
@@ -1286,11 +1374,12 @@ function calcM(){
 }
 
 function calcG(){
-    const b = bal();
-    GRAINS.forEach(g => {
-        const el = document.getElementById(g.uId); const val = el ? parseFloat(el.value) : 0;
-        const rem = (b[g.k] || 0) - (val || 0); const remEl = document.getElementById('rem_' + g.k);
-        if(remEl) { remEl.textContent = fN(rem, g.unit); remEl.className = 'rem-val ' + (rem < 0 ? 'low' : ''); }
+    const b=bal();
+    GRAINS.forEach(g=>{
+        const el=document.getElementById(g.uId); const val=el?parseFloat(el.value):0;
+        const rem=(b[g.k]||0)-(val||0); const remEl=document.getElementById('rem_'+g.k);
+        if(remEl){ remEl.textContent=fN(rem,g.unit); remEl.className='rem-val '+(rem<0?'low':''); }
+        if(el){ el.classList.toggle('highlight', val>0); }
     });
 }
 
@@ -1313,8 +1402,20 @@ function initEntry(){
 function renderEntryTables(){ 
     const b=bal(); 
     document.getElementById('grainTbody').innerHTML=GRAINS.map(g=>{ 
-        const el = document.getElementById(g.uId); const cv = el ? el.value : ''; const rem = (b[g.k]||0)-(parseFloat(cv)||0); 
-        return `<tr class="etr"><td>${g.lbl} <span style="font-size:9px;color:var(--mu);font-weight:500">(${g.unit})</span></td><td class="stk-val ${(b[g.k]||0)<=g.low?'low':''}">${fN((b[g.k]||0), g.unit)}</td><td><input type="number" class="use-inp" id="${g.uId}" placeholder="0" step="0.01" min="0" value="${cv}" oninput="calcG()"></td><td class="rem-val ${rem<0?'low':''}" id="rem_${g.k}">${fN(rem, g.unit)}</td></tr>`; 
+        const el=document.getElementById(g.uId); const cv=el?el.value:''; 
+        const stk=b[g.k]||0; const rem=stk-(parseFloat(cv)||0); 
+        return `<tr class="etr">
+            <td style="padding:6px 6px;font-size:11px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0">
+                ${g.lbl}<br><span style="font-size:9px;color:var(--mu);font-weight:500">(${g.unit})</span>
+            </td>
+            <td class="stk-val ${stk<=g.low?'low':''}" style="padding:6px 4px;font-size:11px">${fN(stk,g.unit)}</td>
+            <td style="padding:6px 4px">
+                <input type="number" class="use-inp${cv?' highlight':''}" id="${g.uId}" 
+                    placeholder="0" step="0.01" min="0" value="${cv}" oninput="calcG()"
+                    style="width:100%;padding:5px 4px;font-size:12px;min-width:unset">
+            </td>
+            <td class="rem-val ${rem<0?'low':''}" id="rem_${g.k}" style="padding:6px 4px;font-size:11px">${fN(rem,g.unit)}</td>
+        </tr>`; 
     }).join(''); 
 } 
 
@@ -1534,9 +1635,25 @@ function editE(id){
 function openDel(id,type,lbl){S.delId=id;S.delType=type;document.getElementById('dMsg').textContent=`${lbl} பதிவை நீக்கவா?`;document.getElementById('mDl').classList.add('open');} 
 function closeMDl(){document.getElementById('mDl').classList.remove('open');} 
 function confDel(){ 
-    if(S.delType==='e'){ S.entries=S.entries.filter(e=>e.id!==S.delId); if(db) db.collection('entries').doc(S.delId).delete(); localStorage.setItem('mdm_e',JSON.stringify(S.entries)); loadActiveRep(); } 
-    else{ S.stocks=S.stocks.filter(s=>s.id!==S.delId); if(db) db.collection('stocks').doc(S.delId).delete(); localStorage.setItem('mdm_s',JSON.stringify(S.stocks)); renderBal();loadHist(); } 
-    closeMDl();toast('✅ நீக்கப்பட்டது','ok'); 
+    if(S.delType==='e'){ 
+        S.entries=S.entries.filter(e=>e.id!==S.delId); 
+        if(db) db.collection('entries').doc(S.delId).delete(); 
+        localStorage.setItem('mdm_e',JSON.stringify(S.entries)); 
+        closeMDl(); toast('✅ நீக்கப்பட்டது','ok');
+        // Go to report - current month
+        const now=new Date();
+        document.getElementById('fMn').value=MONTHS[now.getMonth()];
+        document.getElementById('fYr').value=now.getFullYear().toString();
+        gP('report'); 
+        return;
+    } 
+    else{ 
+        S.stocks=S.stocks.filter(s=>s.id!==S.delId); 
+        if(db) db.collection('stocks').doc(S.delId).delete(); 
+        localStorage.setItem('mdm_s',JSON.stringify(S.stocks)); 
+        renderBal(); loadHist(); 
+    } 
+    closeMDl(); toast('✅ நீக்கப்பட்டது','ok'); 
 } 
 function delStock(id){openDel(id,'s','இந்த இருப்பு');} 
 
@@ -1740,6 +1857,264 @@ function doAnnualPDF() {
     html2pdf().set(opt).from(el).save().then(()=>{
         document.body.removeChild(el);
         toast('✅ வருடாந்திர PDF Download வெற்றி!','ok');
+    });
+}
+
+// ═══════════════════════════════════════════════
+// ANALYTICS ENGINE — v2.0
+// ═══════════════════════════════════════════════
+let aCharts = {};
+let activeGrainKey = 'R';
+
+function destroyChart(id) {
+    if(aCharts[id]) { aCharts[id].destroy(); delete aCharts[id]; }
+}
+
+// Shared Chart.js default options
+const aDefOpts = (yFmt) => ({
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 600, easing: 'easeOutQuart' },
+    plugins: { legend: { display: false } },
+    scales: {
+        y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 10 }, callback: yFmt || (v=>v) } },
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+});
+
+function loadAnalytics() {
+    const yr  = document.getElementById('fAYr').value;
+    const sc  = S.school;
+    const es  = S.entries.filter(e => e.sc === sc && e.dt.startsWith(yr));
+    const curYr  = parseInt(yr);
+    const prevYr = curYr - 1;
+    const now = new Date();
+    const curMn  = MONTHS[now.getMonth()];
+
+    // Banner
+    document.getElementById('aBannerSub').textContent = yr + ' ஆண்டு பகுப்பாய்வு — ' + sc;
+    document.getElementById('aBannerBadge').textContent = es.length + ' மொத்த பதிவுகள்';
+
+    if (!es.length) {
+        document.getElementById('aKpi').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--mu)">இந்த ஆண்டில் பதிவுகள் இல்லை</div>';
+        return;
+    }
+
+    // ── Core stats ───────────────────────────────
+    const totalDays  = es.length;
+    const totalSt    = es.reduce((s,e)=>s+e.st,0);
+    const totalAmt   = es.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0);
+    const totalV     = es.reduce((s,e)=>s+(parseFloat(e.uV)||0),0);
+    const totalG     = es.reduce((s,e)=>s+(parseFloat(e.uG)||0),0);
+    const totalF     = es.reduce((s,e)=>s+(parseFloat(e.uF)||0),0);
+    const avgPerSt   = totalSt  > 0 ? totalAmt / totalSt  : 0;
+    const avgPerDay  = totalDays> 0 ? totalAmt / totalDays: 0;
+    const workMths   = [...new Set(es.map(e=>e.mo))].length;
+    const prevEs     = S.entries.filter(e=>e.sc===sc && e.dt.startsWith(prevYr));
+    const prevAmt    = prevEs.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0);
+    const yoyChg     = prevAmt > 0 ? ((totalAmt-prevAmt)/prevAmt*100).toFixed(1) : null;
+
+    // ── KPI cards (3-col) ─────────────────────────
+    const kpis = [
+        { ic:'📅', v: totalDays,                              l:'பணி நாட்கள்',        bg:'#eff6ff', vc:'#1d4ed8' },
+        { ic:'👩‍🎓', v: totalSt.toLocaleString(),             l:'மாணவர் நாட்கள்',     bg:'#f0fdf4', vc:'#15803d' },
+        { ic:'💰', v: '₹'+Math.round(totalAmt).toLocaleString(), l:'மொத்த செலவு',   bg:'#fefce8', vc:'#854d0e' },
+        { ic:'👤', v: '₹'+avgPerSt.toFixed(2),                l:'மாணவர்/சராசரி',     bg:'#fdf4ff', vc:'#7e22ce' },
+        { ic:'📆', v: '₹'+Math.round(avgPerDay),              l:'தினசரி சராசரி',      bg:'#fff7ed', vc:'#c2410c' },
+        { ic:'🗓️', v: workMths + ' மாதம்',                   l:'பதிவு மாதங்கள்',     bg:'#f0f9ff', vc:'#0369a1' },
+    ];
+    document.getElementById('aKpi').innerHTML = kpis.map(k=>
+        `<div class="sc" style="background:${k.bg};border:none;padding:12px 8px">
+            <div style="font-size:20px;margin-bottom:6px">${k.ic}</div>
+            <div style="font-size:15px;font-weight:800;color:${k.vc};letter-spacing:-.3px">${k.v}</div>
+            <div style="font-size:9px;color:var(--mu);margin-top:2px;font-weight:600">${k.l}</div>
+        </div>`
+    ).join('');
+
+    // ── Trend mini row ─────────────────────────────
+    const thisMoEs = es.filter(e=>e.mo===curMn);
+    const thisMoAmt = thisMoEs.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0);
+    const highMo = MONTHS.reduce((best,mn)=>{
+        const a=es.filter(e=>e.mo===mn).reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0);
+        return a>best.a?{mn,a}:best;
+    },{mn:'',a:0});
+    document.getElementById('aTrend').innerHTML =
+        `<div style="background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;border-radius:16px;padding:14px;text-align:center">
+            <div style="font-size:10px;opacity:.85;margin-bottom:4px">📅 ${curMn} செலவு</div>
+            <div style="font-size:18px;font-weight:800">₹${Math.round(thisMoAmt).toLocaleString()}</div>
+            <div style="font-size:9px;opacity:.8;margin-top:3px">${thisMoEs.length} நாட்கள்</div>
+        </div>`
+        +`<div style="background:linear-gradient(135deg,#f59e0b,#dc2626);color:#fff;border-radius:16px;padding:14px;text-align:center">
+            <div style="font-size:10px;opacity:.85;margin-bottom:4px">🏆 அதிக செலவு மாதம்</div>
+            <div style="font-size:16px;font-weight:800">${highMo.mn||'—'}</div>
+            <div style="font-size:9px;opacity:.8;margin-top:3px">₹${Math.round(highMo.a).toLocaleString()}</div>
+        </div>`
+        +(yoyChg !== null
+            ? `<div style="background:linear-gradient(135deg,${parseFloat(yoyChg)>0?'#dc2626,#f87171':'#059669,#34d399'});color:#fff;border-radius:16px;padding:14px;text-align:center;grid-column:1/-1">
+                <div style="font-size:10px;opacity:.85;margin-bottom:4px">📊 ${prevYr} vs ${curYr} மாற்றம்</div>
+                <div style="font-size:20px;font-weight:800">${parseFloat(yoyChg)>0?'▲':'▼'}${Math.abs(yoyChg)}%</div>
+                <div style="font-size:9px;opacity:.8;margin-top:3px">₹${Math.round(prevAmt).toLocaleString()} → ₹${Math.round(totalAmt).toLocaleString()}</div>
+            </div>` : '');
+
+    // ── Monthly expenditure bar ───────────────────
+    const monthData = MONTHS.map(mn=>{ const mEs=es.filter(e=>e.mo===mn); return { amt:mEs.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0), days:mEs.length }; });
+    document.getElementById('aExpTotal').textContent = 'மொத்தம் ₹'+Math.round(totalAmt).toLocaleString();
+    destroyChart('monthExp');
+    aCharts.monthExp = new Chart(document.getElementById('chartMonthExp'), {
+        type: 'bar',
+        data: {
+            labels: MONTHS.map(m=>m.substring(0,3)),
+            datasets: [{
+                data: monthData.map(d=>Math.round(d.amt)),
+                backgroundColor: monthData.map((d,i)=> {
+                    const colors=['rgba(59,130,246,.85)','rgba(16,185,129,.85)','rgba(245,158,11,.85)','rgba(239,68,68,.85)','rgba(139,92,246,.85)','rgba(6,182,212,.85)','rgba(236,72,153,.85)','rgba(132,204,22,.85)','rgba(251,146,60,.85)','rgba(99,102,241,.85)','rgba(20,184,166,.85)','rgba(244,63,94,.85)'];
+                    return d.amt>0?colors[i]:'rgba(203,213,225,.35)';
+                }),
+                borderRadius: 10, borderSkipped: false,
+            }]
+        },
+        options: { ...aDefOpts(v=>'₹'+v.toLocaleString()), plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>'₹'+ctx.raw.toLocaleString()+' ('+monthData[ctx.dataIndex].days+' நாட்கள்)' } } } }
+    });
+
+    // ── Per-student line ──────────────────────────
+    const psData = MONTHS.map(mn=>{ const mEs=es.filter(e=>e.mo===mn); const st=mEs.reduce((s,e)=>s+e.st,0); const amt=mEs.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0); return st>0?parseFloat((amt/st).toFixed(2)):null; });
+    const avgVal = psData.filter(Boolean).reduce((s,v,_,a)=>s+v/a.length,0);
+    document.getElementById('aAvgCost').textContent = '₹'+avgVal.toFixed(2)+' / மாணவர்';
+    destroyChart('perStudent');
+    aCharts.perStudent = new Chart(document.getElementById('chartPerStudent'), {
+        type: 'line',
+        data: {
+            labels: MONTHS.map(m=>m.substring(0,3)),
+            datasets: [
+                { data: psData, borderColor:'#059669', backgroundColor:'rgba(5,150,105,.08)', tension:.4, fill:true, pointRadius:5, pointBackgroundColor:'#059669', pointBorderColor:'#fff', pointBorderWidth:2, spanGaps:true },
+                { data: MONTHS.map(()=>parseFloat(avgVal.toFixed(2))), borderColor:'rgba(245,158,11,.5)', borderDash:[5,5], pointRadius:0, spanGaps:true }
+            ]
+        },
+        options: { ...aDefOpts(v=>'₹'+v), plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>ctx.datasetIndex===0?'₹'+ctx.raw+' / மாணவர்':'சராசரி ₹'+ctx.raw } } } }
+    });
+
+    // ── Grain chart buttons ───────────────────────
+    document.getElementById('grainChartBtns').innerHTML = GRAINS.map(g=>
+        `<button onclick="switchGrainChart('${g.k}','${yr}')" id="gb_${g.k}"
+            style="padding:5px 10px;border-radius:20px;border:2px solid ${g.k===activeGrainKey?'var(--bm)':'var(--br)'};
+            background:${g.k===activeGrainKey?'var(--bm)':'#fff'};color:${g.k===activeGrainKey?'#fff':'var(--tx)'};
+            font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;transition:.2s">${g.lbl}</button>`
+    ).join('');
+    renderGrainChart(activeGrainKey, yr, es);
+
+    // ── Expenditure breakdown doughnut ────────────
+    destroyChart('expBreak');
+    const expPal = ['#3b82f6','#10b981','#f59e0b'];
+    aCharts.expBreak = new Chart(document.getElementById('chartExpBreak'), {
+        type: 'doughnut',
+        data: {
+            labels: ['🥦 காய்கறி','🛍️ மளிகை','🪵 எரிபொருள்'],
+            datasets: [{ data:[Math.round(totalV),Math.round(totalG),Math.round(totalF)], backgroundColor:expPal, borderWidth:3, borderColor:'#fff', hoverOffset:8 }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, animation:{duration:600}, cutout:'65%', plugins:{ legend:{display:false} } }
+    });
+    const expItems = [['🥦 காய்கறி',totalV,'#3b82f6'],['🛍️ மளிகை',totalG,'#10b981'],['🪵 எரிபொருள்',totalF,'#f59e0b']];
+    document.getElementById('aExpBreakStats').innerHTML = expItems.map(([l,v,c])=>{
+        const pct = totalAmt>0 ? (v/totalAmt*100).toFixed(1) : 0;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;background:#f8fbff;border-radius:10px;padding:8px 10px">
+            <div style="font-size:11px;font-weight:700;color:var(--tx)">${l}</div>
+            <div style="text-align:right">
+                <div style="font-size:13px;font-weight:800;color:${c}">₹${Math.round(v).toLocaleString()}</div>
+                <div style="font-size:9px;color:var(--mu)">${pct}%</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // ── Food menu frequency horizontal bar ───────
+    const menuCount = {};
+    es.forEach(e=>{ const f=(e.food||'பிற').replace(/^\d+\.\s*/,'').substring(0,28); menuCount[f]=(menuCount[f]||0)+1; });
+    const menuEntries = Object.entries(menuCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const palMenu=['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#818cf8','#60a5fa','#38bdf8','#34d399'];
+    destroyChart('menu');
+    aCharts.menu = new Chart(document.getElementById('chartMenu'), {
+        type: 'bar',
+        data: {
+            labels: menuEntries.map(([k])=>k.substring(0,20)),
+            datasets: [{ data: menuEntries.map(([,v])=>v), backgroundColor: palMenu, borderRadius:8, borderSkipped:false }]
+        },
+        options: {
+            indexAxis: 'y', responsive:true, maintainAspectRatio:false, animation:{duration:600},
+            plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>ctx.raw+' முறை' } } },
+            scales: { x:{ grid:{color:'rgba(0,0,0,.05)'}, ticks:{font:{size:10}} }, y:{ grid:{display:false}, ticks:{font:{size:9}} } }
+        }
+    });
+
+    // ── YoY table ────────────────────────────────
+    let yoyHtml='<table style="width:100%;border-collapse:collapse;min-width:max-content"><thead><tr>'
+        +'<th style="text-align:left">மாதம்</th>'
+        +'<th style="color:#93c5fd">'+prevYr+' நாள்</th><th style="color:#93c5fd">'+prevYr+' ₹</th>'
+        +'<th style="color:#6ee7b7">'+curYr+' நாள்</th><th style="color:#6ee7b7">'+curYr+' ₹</th>'
+        +'<th>%</th></tr></thead><tbody>';
+    let totP={d:0,a:0},totC={d:0,a:0};
+    MONTHS.forEach(mn=>{
+        const pE=prevEs.filter(e=>e.mo===mn),cE=es.filter(e=>e.mo===mn);
+        const pd=pE.length,pa=pE.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0);
+        const cd=cE.length,ca=cE.reduce((s,e)=>s+(parseFloat(e.uAmt)||0),0);
+        totP.d+=pd;totP.a+=pa;totC.d+=cd;totC.a+=ca;
+        const chg=pa>0?((ca-pa)/pa*100).toFixed(1):null;
+        const cc=chg!=null?(parseFloat(chg)>0?'#e11d48':'#059669'):'#94a3b8';
+        const ct=chg!=null?(parseFloat(chg)>0?'▲':'▼')+Math.abs(chg)+'%':'—';
+        const highlight = mn===curMn ? 'background:#eff6ff;font-weight:800' : '';
+        yoyHtml+=`<tr style="${highlight}"><td style="text-align:left;font-weight:700">${mn}</td>`
+            +`<td>${pd||'—'}</td><td>${pa>0?'₹'+Math.round(pa):'—'}</td>`
+            +`<td>${cd||'—'}</td><td>${ca>0?'₹'+Math.round(ca):'—'}</td>`
+            +`<td style="color:${cc};font-weight:800">${ct}</td></tr>`;
+    });
+    const tc=totP.a>0?((totC.a-totP.a)/totP.a*100).toFixed(1):null;
+    yoyHtml+=`<tr style="background:var(--bd);color:#fff"><td style="text-align:left;font-weight:800">மொத்தம்</td>`
+        +`<td>${totP.d}</td><td>₹${Math.round(totP.a).toLocaleString()}</td>`
+        +`<td>${totC.d}</td><td>₹${Math.round(totC.a).toLocaleString()}</td>`
+        +`<td style="font-weight:800">${tc!=null?(parseFloat(tc)>0?'▲':'▼')+Math.abs(tc)+'%':'—'}</td></tr></tbody></table>`;
+    document.getElementById('yoyTable').innerHTML = yoyHtml;
+
+    // ── Weekly trend (current month) ──────────────
+    const thisMo = MONTHS[new Date().getMonth()];
+    const wEs = S.entries.filter(e=>e.sc===sc&&e.mo===thisMo&&e.dt.startsWith(yr)).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+    const weeks = ['1வது','2வது','3வது','4வது','5வது'];
+    const wData = [0,0,0,0,0];
+    const wDays = [0,0,0,0,0];
+    wEs.forEach(e=>{ const d=new Date(e.dt).getDate(); const w=Math.min(Math.ceil(d/7)-1,4); wData[w]+=(parseFloat(e.uAmt)||0); wDays[w]++; });
+    destroyChart('weekly');
+    aCharts.weekly = new Chart(document.getElementById('chartWeekly'), {
+        type: 'bar',
+        data: {
+            labels: weeks,
+            datasets: [
+                { label:'செலவு', data:wData.map(Math.round), backgroundColor:['rgba(99,102,241,.85)','rgba(139,92,246,.85)','rgba(168,85,247,.85)','rgba(217,70,239,.85)','rgba(236,72,153,.85)'], borderRadius:10, borderSkipped:false }
+            ]
+        },
+        options: { ...aDefOpts(v=>'₹'+v), plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>'₹'+ctx.raw+' ('+wDays[ctx.dataIndex]+' நாட்கள்)' } } } }
+    });
+}
+
+function switchGrainChart(k, yr) {
+    activeGrainKey = k;
+    const es = S.entries.filter(e=>e.sc===S.school&&e.dt.startsWith(yr));
+    GRAINS.forEach(g=>{
+        const btn=document.getElementById('gb_'+g.k); if(!btn)return;
+        btn.style.borderColor = g.k===k?'var(--bm)':'var(--br)';
+        btn.style.background  = g.k===k?'var(--bm)':'#fff';
+        btn.style.color       = g.k===k?'#fff':'var(--tx)';
+    });
+    renderGrainChart(k, yr, es);
+}
+
+function renderGrainChart(k, yr, es) {
+    const g = GRAINS.find(x=>x.k===k); if(!g) return;
+    const vals = MONTHS.map(mn=>parseFloat(es.filter(e=>e.mo===mn).reduce((s,e)=>s+(parseFloat(e['u'+k])||0),0).toFixed(3)));
+    const maxV = Math.max(...vals);
+    destroyChart('grain');
+    aCharts.grain = new Chart(document.getElementById('chartGrain'), {
+        type: 'bar',
+        data: {
+            labels: MONTHS.map(m=>m.substring(0,3)),
+            datasets:[{ data:vals, backgroundColor:vals.map(v=>v===maxV&&v>0?'rgba(239,68,68,.85)':'rgba(245,158,11,.75)'), borderRadius:8, borderSkipped:false }]
+        },
+        options: { ...aDefOpts(), plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>ctx.raw+' '+g.unit } } } }
     });
 }
 
